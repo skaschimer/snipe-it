@@ -722,8 +722,8 @@ class Helper
         // The check and message that the user is still using the deprecated version
         $deprecations = [
             'ms_teams_deprecated' => array(
-            'check' => !Str::contains(Setting::getSettings()->webhook_endpoint, 'workflows'),
-            'message' => 'The Microsoft Teams webhook URL being used will be deprecated Jan 31st, 2025. <a class="btn btn-primary" href="' . route('settings.slack.index') . '">Change webhook endpoint</a>'),
+            'check' => !Str::contains(Setting::getSettings()->webhook_endpoint, 'workflows') && (Setting::getSettings()->webhook_selected === 'microsoft'),
+            'message' => 'The Microsoft Teams webhook URL being used will be deprecated Dec 31st, 2025. <a class="btn btn-primary" href="' . route('settings.slack.index') . '">Change webhook endpoint</a>'),
         ];
 
         // if item of concern is being used and its being used with the deprecated values return the notification array.
@@ -1313,25 +1313,24 @@ class Helper
         switch ($item) {
             case 'asset':
                 return 'fas fa-barcode';
-                break;
             case 'accessory':
                 return 'fas fa-keyboard';
-                break;
             case 'component':
                 return 'fas fa-hdd';
-                break;
             case 'consumable':
                 return 'fas fa-tint';
-                break;
             case 'license':
                 return 'far fa-save';
-                break;
             case 'location':
                 return 'fas fa-map-marker-alt';
-                break;
             case 'user':
                 return 'fas fa-user';
-                break;
+            case 'supplier':
+                return 'fa-solid fa-store';
+            case 'manufacturer':
+                return 'fa-solid fa-building';
+            case 'category':
+                return 'fa-solid fa-table-columns';
         }
 
     }
@@ -1487,6 +1486,7 @@ class Helper
         $redirect_option = Session::get('redirect_option');
         $checkout_to_type = Session::get('checkout_to_type');
         $checkedInFrom = Session::get('checkedInFrom');
+        $other_redirect = Session::get('other_redirect');
 
         // return to index
         if ($redirect_option == 'index') {
@@ -1535,6 +1535,16 @@ class Helper
                     return route('hardware.show', $request->assigned_asset ?? $checkedInFrom);
             }
         }
+
+        // return to somewhere else
+        if ($redirect_option == 'other_redirect') {
+            switch ($other_redirect) {
+                case 'audit':
+                    return route('assets.audit.due');
+            }
+
+        }
+
         return redirect()->back()->with('error', trans('admin/hardware/message.checkout.error'));
     }
 
