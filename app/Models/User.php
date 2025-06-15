@@ -320,7 +320,7 @@ class User extends SnipeModel implements AuthenticatableContract, AuthorizableCo
     {
         $setting = Setting::getSettings();
 
-        if ($setting->name_display_format=='last_first') {
+        if ($setting?->name_display_format == 'last_first') {
             return ($this->last_name) ? $this->last_name.' '.$this->first_name : $this->first_name;
         }
         return $this->last_name ? $this->first_name.' '.$this->last_name : $this->first_name;
@@ -548,6 +548,25 @@ class User extends SnipeModel implements AuthenticatableContract, AuthorizableCo
         return $this->hasMany(\App\Models\Actionlog::class, 'target_id')
             ->where('target_type', self::class)
             ->where('action_type', '=', 'accepted')
+            ->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Establishes the user -> eula relationship
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\Relation
+     * @since [v8.1.16]
+     * @author [Godfrey Martinez] [<gmartinez@grokability.com>]
+ */
+    public function eulas()
+    {
+        return $this->hasMany(Actionlog::class, 'target_id')
+            ->with('item')
+            ->select(['id', 'target_id', 'target_type', 'action_type', 'filename', 'accept_signature', 'created_at', 'note', 'item_id', 'item_type'])
+            ->where('target_type', self::class)
+            ->where('action_type', 'accepted')
+            ->whereNotNull('filename')
+            ->whereNotNull('accept_signature')
             ->orderBy('created_at', 'desc');
     }
 
