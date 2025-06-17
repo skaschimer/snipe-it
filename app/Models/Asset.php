@@ -119,11 +119,12 @@ class Asset extends Depreciable
         'byod'              => ['nullable', 'boolean'],
         'order_number'      => ['nullable', 'string', 'max:191'],
         'notes'             => ['nullable', 'string', 'max:65535'],
-        'assigned_to'       => ['nullable', 'integer'],
+        'assigned_to'   => ['nullable', 'integer', 'required_with:assigned_type'],
+        'assigned_type' => ['nullable', 'required_with:assigned_to', 'in:'.User::class.",".Location::class.",".Asset::class],
         'requestable'       => ['nullable', 'boolean'],
-        'assigned_user'     => ['nullable', 'exists:users,id,deleted_at,NULL'],
-        'assigned_location' => ['nullable', 'exists:locations,id,deleted_at,NULL', 'fmcs_location'],
-        'assigned_asset'    => ['nullable', 'exists:assets,id,deleted_at,NULL']
+        'assigned_user'     => ['integer', 'nullable', 'exists:users,id,deleted_at,NULL'],
+        'assigned_location' => ['integer', 'nullable', 'exists:locations,id,deleted_at,NULL', 'fmcs_location'],
+        'assigned_asset'    => ['integer', 'nullable', 'exists:assets,id,deleted_at,NULL']
     ];
 
 
@@ -490,7 +491,7 @@ class Asset extends Depreciable
     /**
      * Determines whether the asset is checked out to a user
      *
-     * Even though we allow allow for checkout to things beyond users
+     * Even though we allow for checkout to things beyond users
      * this method is an easy way of seeing if we are checked out to a user.
      *
      * @author [A. Gianotto] [<snipe@snipe.net>]
@@ -655,6 +656,8 @@ class Asset extends Depreciable
             return Storage::disk('public')->url(app('assets_upload_path').e($this->image));
         } elseif ($this->model && ! empty($this->model->image)) {
             return Storage::disk('public')->url(app('models_upload_path').e($this->model->image));
+        } elseif ($this->model?->category && ! empty($this->model->category->image)) {
+            return Storage::disk('public')->url(app('categories_upload_path').e($this->model->category->image));
         }
 
         return false;
@@ -803,6 +806,7 @@ class Asset extends Depreciable
             ->whereNotNull('warranty_months')
             ->whereNotNull('purchase_date')
             ->whereNull('deleted_at')
+            ->NotArchived()
             ->whereRaw('DATE_ADD(`purchase_date`, INTERVAL `warranty_months` MONTH) <= DATE_ADD(NOW(), INTERVAL '
                                  . $days
                                  . ' DAY) AND DATE_ADD(`purchase_date`, INTERVAL `warranty_months` MONTH) > NOW()')
@@ -959,6 +963,7 @@ class Asset extends Depreciable
             return $this->model->category->require_acceptance;
         }
 
+        return false;
     }
 
 
@@ -1125,6 +1130,7 @@ class Asset extends Depreciable
             $query = $query
                 ->orWhere('assets_users.first_name', 'LIKE', '%'.$term.'%')
                 ->orWhere('assets_users.last_name', 'LIKE', '%'.$term.'%')
+                ->orWhere('assets_users.jobtitle', 'LIKE', '%'.$term.'%')
                 ->orWhere('assets_users.username', 'LIKE', '%'.$term.'%')
                 ->orWhere('assets_users.employee_num', 'LIKE', '%'.$term.'%')
                 ->orWhereMultipleColumns([
@@ -1299,7 +1305,7 @@ class Asset extends Depreciable
 
     public function scopeDueForAudit($query, $settings)
     {
-        $interval = $settings->audit_warning_days ?? 0;
+        $interval = (int) $settings->audit_warning_days ?? 0;
         $today = Carbon::now();
         $interval_date = $today->copy()->addDays($interval)->format('Y-m-d');
 
@@ -1367,7 +1373,7 @@ class Asset extends Depreciable
 
     public function scopeDueForCheckin($query, $settings)
     {
-        $interval = $settings->due_checkin_days ?? 0;
+        $interval = (int) $settings->due_checkin_days ?? 0;
         $today = Carbon::now();
         $interval_date = $today->copy()->addDays($interval)->format('Y-m-d');
 
@@ -1581,11 +1587,13 @@ class Asset extends Depreciable
                 })->orWhere(function ($query) use ($search) {
                     $query->where('assets_users.first_name', 'LIKE', '%'.$search.'%')
                         ->orWhere('assets_users.last_name', 'LIKE', '%'.$search.'%')
+                        ->orWhere('assets_users.username', 'LIKE', '%'.$search.'%')
+                        ->orWhere('assets_users.jobtitle', 'LIKE', '%'.$search.'%')
                         ->orWhereMultipleColumns([
                             'assets_users.first_name',
                             'assets_users.last_name',
+                            'assets_users.jobtitle',
                         ], $search)
-                        ->orWhere('assets_users.username', 'LIKE', '%'.$search.'%')
                         ->orWhere('assets_locations.name', 'LIKE', '%'.$search.'%')
                         ->orWhere('assigned_assets.name', 'LIKE', '%'.$search.'%');
                 })->orWhere('assets.name', 'LIKE', '%'.$search.'%')
@@ -1966,6 +1974,19 @@ class Asset extends Depreciable
     public function scopeOrderSupplier($query, $order)
     {
         return $query->leftJoin('suppliers as suppliers_assets', 'assets.supplier_id', '=', 'suppliers_assets.id')->orderBy('suppliers_assets.name', $order);
+    }
+
+    /**
+     * Query builder scope to order on supplier name
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query  Query builder instance
+     * @param  text                              $order       Order
+     *
+     * @return \Illuminate\Database\Query\Builder          Modified query builder
+     */
+    public function scopeOrderByJobTitle($query, $order)
+    {
+        return $query->leftJoin('users as users_sort', 'assets.assigned_to', '=', 'users_sort.id')->select('assets.*')->orderBy('users_sort.jobtitle', $order);
     }
 
     /**

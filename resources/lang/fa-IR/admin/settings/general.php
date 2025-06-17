@@ -13,6 +13,8 @@ return [
     'admin_cc_email'            => 'ایمیل CC
 ',
     'admin_cc_email_help'       => 'Send a copy of checkin/checkout emails to this address.',
+    'admin_cc_always' => 'Always send copy upon checkin/checkout',
+    'admin_cc_when_acceptance_required' => 'Only send copy upon checkout if acceptance is required',
     'admin_settings'            => 'Admin Settings',
     'is_ad'				        => 'این سرور Active Directory است',
     'alerts'                	=> 'هشدار',
@@ -83,6 +85,8 @@ return [
 ',
     'eula_settings'				=> 'EULA تنظیمات',
     'eula_markdown'				=> 'این EULA اجازه می دهد تا <a href="https://help.github.com/articles/github-flavored-markdown/">Github با طعم markdown</a>.',
+    'empty_row_count'           => 'Field Start Offset (Empty Rows)',
+    'empty_row_count_help'      => 'Fields will begin populating after this many empty rows are skipped at the top of the label.',
     'favicon'                   => 'فاویکون',
     'favicon_format'            => 'انواع فایل های پذیرفته شده عبارتند از ico، png و gif. سایر فرمت های تصویر ممکن است در همه مرورگرها کار نکنند.
 ',
@@ -205,6 +209,7 @@ return [
     'full_multiple_companies_support_text' => 'شرکت های متعدد پشتیبانی کامل',
     'scope_locations_fmcs_support_text'  => 'Scope Locations with Full Multiple Companies Support',
     'scope_locations_fmcs_support_help_text'  => 'Restrict locations to their selected company.',
+    'scope_locations_fmcs_check_button' => 'Check Compatibility',
     'scope_locations_fmcs_support_disabled_text'  => 'This option is disabled because you have conflicting locations set for :count or more items.',
     'show_in_model_list'   => 'نمایش در مدل کشویی 
 ',
@@ -542,7 +547,7 @@ return [
         'filastname_format'			=> 'First Initial Last Name (jsmith)',
         'lastnamefirstinitial_format' =>  'Last Name First Initial (smithj)',
         'firstname_lastname_underscore_format' => 'First Name Last Name (jane_smith)',
-        'firstinitial.lastname' => 'First Initial Last Name (j.smith)',
+        'firstinitial_lastname' => 'First Initial Last Name (j.smith)',
         'lastname_firstinitial' => 'Last Name First Initial (smith_j)',
         'lastname_dot_firstinitial_format' => 'Last Name First Initial (smith.j)',
         'firstnamelastname'     => 'First Name Last Name (janesmith)',
@@ -558,7 +563,7 @@ return [
         'filastname_format'			=> 'اولین نام خانوادگی (jsmith@example.com)',
         'lastnamefirstinitial_format' =>  'فامیل نام میانه (smithj@example.com)',
         'firstname_lastname_underscore_format' => 'نام خانوادگی (jane.smith@example.com)',
-        'firstinitial.lastname' => 'نام میانه فامیل (j.smith@example.com)',
+        'firstinitial_lastname' => 'نام میانه فامیل (j.smith@example.com)',
         'lastname_firstinitial' => 'فامیل نام میانه (smith_j@example.com)',
         'lastname_dot_firstinitial_format' => 'فامیل نام میانه (smith.j@example.com)',
         'firstnamelastname'     => 'نام فامیل (janesmith@example.com)',
@@ -624,6 +629,7 @@ return [
 ',
         'security'          => 'رمز عبور، رمزهای عبور، الزامات، دو عاملی، دو عاملی، رمزهای عبور رایج، ورود از راه دور، خروج از سیستم، احراز هویت
 ',
+        'notifications'     => 'alerts, email, notifications, audit, threshold, email alerts, cc',
     ],
 
 ];
